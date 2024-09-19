@@ -27,6 +27,7 @@ export const createUser = async (user: CreateUserParams) => {
       user.phone,
       undefined,
       user.name
+      
     );
 
     console.log("new users",newuser)
