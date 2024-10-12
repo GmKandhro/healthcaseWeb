@@ -8,7 +8,11 @@ import { getRecentAppointmentList } from "@/lib/actions/appointment.actions";
 
 const AdminPage = async () => {
   const appointments = await getRecentAppointmentList();
+<<<<<<< HEAD
   // console.log(appointments)
+=======
+console.log(appointments)
+>>>>>>> 8f86f74a4c5af3e8e9aa3064aa950964db5b4274
   return (
     <div className="mx-auto flex max-w-7xl flex-col space-y-14">
       <header className="admin-header">

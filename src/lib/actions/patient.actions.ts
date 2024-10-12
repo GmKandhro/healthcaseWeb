@@ -8,8 +8,21 @@ import axios from 'axios';
 // CREATE USER
 export const createUser = async (user: CreateUserParams) => {
   try {
+<<<<<<< HEAD
     const response = await axios.post('/api/patient/createUser', user);
     console.log("API Response:", response.data);
+=======
+    // Create new user -> https://appwrite.io/docs/references/1.5.x/server-nodejs/users#create
+    console.log(user)
+    const newuser = await users.create(
+      ID.unique(),
+      user.email,
+      user.phone,
+      undefined,
+      user.name
+      
+    );
+>>>>>>> 8f86f74a4c5af3e8e9aa3064aa950964db5b4274
 
     return response.data.data; // Return user data from API
   } catch (error: any) {
