@@ -23,14 +23,15 @@ import {
 import { decryptKey } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: ColumnDef<TData, TValue>[]; // Column definition for the table
+  data: TData[]; // Data for the table
 }
 
 export function DataTable<TData, TValue>({
   columns,
-  data,
+  data = [], // Default data to an empty array
 }: DataTableProps<TData, TValue>) {
+  // Access the encrypted key from local storage
   const encryptedKey =
     typeof window !== "undefined"
       ? window.localStorage.getItem("accessKey")
@@ -39,21 +40,24 @@ export function DataTable<TData, TValue>({
   useEffect(() => {
     const accessKey = encryptedKey && decryptKey(encryptedKey);
 
+    // Redirect to home if the access key does not match the environment's admin passkey
     if (accessKey !== process.env.NEXT_PUBLIC_ADMIN_PASSKEY!.toString()) {
       redirect("/");
     }
   }, [encryptedKey]);
 
+  // Initialize the table using react-table hook
   const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    data, // Table data
+    columns, // Table columns
+    getCoreRowModel: getCoreRowModel(), // Core row model for handling table rows
+    getPaginationRowModel: getPaginationRowModel(), // Pagination handling
   });
 
   return (
     <div className="data-table">
       <Table className="shad-table">
+        {/* Table header section */}
         <TableHeader className=" bg-dark-200">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="shad-table-row-header">
@@ -72,8 +76,10 @@ export function DataTable<TData, TValue>({
             </TableRow>
           ))}
         </TableHeader>
+
+        {/* Table body section */}
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {table?.getRowModel()?.rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
@@ -96,6 +102,8 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
+
+      {/* Pagination controls */}
       <div className="table-actions">
         <Button
           variant="outline"

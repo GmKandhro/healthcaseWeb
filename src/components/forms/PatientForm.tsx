@@ -29,34 +29,44 @@ export const PatientForm = () => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof UserFormValidation>) => {
+  const onSubmit = async (values: z.infer<typeof UserFormValidation>) => { 
     setIsLoading(true);
-    
-
+  
     try {
       const user = {
         name: values.name,
         email: values.email,
         phone: values.phone,
       };
-
-
-      console.log(user,"data")
+  
+      // console.log(user, "Form Data Submitted");
+  
+      // Call API to create the user
       const newUser = await createUser(user);
-
-      console.log(newUser,"newuser")
+  
       if (newUser) {
-        toast("Login user successfull")
-        router.push(`/patients/${newUser.$id}/register`);
-      }else{
-        toast("unVaild data")
+        // User successfully created
+        // console.log(newUser)
+        if(newUser.message === "User already exists."){
+
+          toast.error(newUser.message);
+        }else{
+
+          toast.success(newUser.message);
+          router.push(`/patients/${newUser._id}/register`);
+        }
+      } else {
+        // If API doesn't return a valid user object
+        toast.error("Error occurred while creating user.");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error during submission:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
+  
 
   return (
     <Form {...form}>

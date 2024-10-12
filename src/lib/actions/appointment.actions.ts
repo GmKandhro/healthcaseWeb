@@ -1,7 +1,8 @@
-"use server";
+// "use client";
 //  twilio recovery code ===>  19UZU2EH611S31J9CZ6FTU5R
 
 import { ID, Query } from "node-appwrite";
+import { AppointmentModal } from "@/components/AppointmentModal";
 
 import { Appointment } from "../../../types/appwrite.types";
 
@@ -13,63 +14,42 @@ import {
 } from "../appwrite.config";
 import { formatDateTime, parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
+import axios from "axios";
 
 //  CREATE APPOINTMENT
 export const createAppointment :any = async (
   appointment: CreateAppointmentParams
 ) => {
   try {
+    // console.log("Appointmenttttt data11 ",appointment)
+    const response = await axios.post('/api/appointment/createAppointment', appointment);
+    
+    return response.data;
    
-    const newAppointment = await databases.createDocument(
-      DATABASE_ID!,
-      APPOINTMENT_COLLECTION_ID!,
-      ID.unique(),
-      appointment
-    );
-
-    return parseStringify(newAppointment);
   } catch (error) {
     console.error("An error occurred while creating a new appointment:", error);
   }
 };
 
 //  GET RECENT APPOINTMENTS
+
 export const getRecentAppointmentList = async () => {
   try {
-    const appointments = await databases.listDocuments(
-      DATABASE_ID!,
-      APPOINTMENT_COLLECTION_ID!,
-      [Query.orderDesc("$createdAt")]
-    );
+    // Fetch all appointments from the API
+    const response = await axios.get("http://localhost:3000/api/appointment/getAllAppointments");
+    const appointments = response.data;
+    // console.log("here is all pointments ",response.data)
 
-    // const scheduledAppointments = (
-    //   appointments.documents as Appointment[]
-    // ).filter((appointment) => appointment.status === "scheduled");
-
-    // const pendingAppointments = (
-    //   appointments.documents as Appointment[]
-    // ).filter((appointment) => appointment.status === "pending");
-
-    // const cancelledAppointments = (
-    //   appointments.documents as Appointment[]
-    // ).filter((appointment) => appointment.status === "cancelled");
-
-    // const data = {
-    //   totalCount: appointments.total,
-    //   scheduledCount: scheduledAppointments.length,
-    //   pendingCount: pendingAppointments.length,
-    //   cancelledCount: cancelledAppointments.length,
-    //   documents: appointments.documents,
-    // };
-
+    // Initial counts for the different statuses
     const initialCounts = {
       scheduledCount: 0,
       pendingCount: 0,
       cancelledCount: 0,
     };
 
-    const counts = (appointments.documents as Appointment[]).reduce(
-      (acc, appointment) => {
+    // Reduce over the appointments to count statuses
+    const counts = appointments.reduce(
+      (acc: any, appointment: any) => {
         switch (appointment.status) {
           case "scheduled":
             acc.scheduledCount++;
@@ -86,20 +66,23 @@ export const getRecentAppointmentList = async () => {
       initialCounts
     );
 
+    // Prepare the data object to return
     const data = {
-      totalCount: appointments.total,
+      totalCount: appointments.length, // Total number of appointments
       ...counts,
-      documents: appointments.documents,
+      documents: appointments, // The appointments list itself
     };
 
-    return parseStringify(data);
+    return data
   } catch (error) {
     console.error(
       "An error occurred while retrieving the recent appointments:",
       error
     );
+    throw new Error("Failed to fetch recent appointments");
   }
 };
+
 
 //  SEND SMS NOTIFICATION
 export const sendSMSNotification = async (userId: string, content: string) => {
@@ -119,18 +102,18 @@ export const sendSMSNotification = async (userId: string, content: string) => {
 
 
 // GET APPOINTMENT
-export const getAppointment = async (appointmentId: string) => {
+export  const getAppointment = async (appointmentId: string) => {
   try {
-    const appointment = await databases.getDocument(
-      DATABASE_ID!,
-      APPOINTMENT_COLLECTION_ID!,
-      appointmentId
-    );
-
-    return parseStringify(appointment);
+    // console.log("appointment is retrieved", appointmentId);
+    
+    // Add leading slash `/` to the API route
+    const appointment = await axios.get(`http://localhost:3000/api/appointment/getAppointment/${appointmentId}`)
+    
+    // console.log("appointment is retrieved5", appointment);
+    return appointment.data;
   } catch (error) {
     console.error(
-      "An error occurred while retrieving the existing patient:",
+      "An error occurred while retrieving the appointment:",
       error
     );
   }
@@ -145,23 +128,28 @@ export const updateAppointment = async ({
   type,
 }: UpdateAppointmentParams) => {
   try {
-    // Update appointment to scheduled -> https://appwrite.io/docs/references/cloud/server-nodejs/databases#updateDocument
-    console.log(appointmentId)
-    const updatedAppointment = await databases.updateDocument(
-      DATABASE_ID!,
-      APPOINTMENT_COLLECTION_ID!,
-      appointmentId,
-      appointment
-    );
+    /* Update appointment to scheduled -> https://appwrite.io/docs/references/cloud/server-nodejs/databases#updateDocument
+    // console.log(appointmentId)
+    // const updatedAppointment = await databases.updateDocument(
+    //   DATABASE_ID!,
+    //   APPOINTMENT_COLLECTION_ID!,
+    //   appointmentId,
+    //   appointment
+    // );
 
 
-    if (!updatedAppointment) throw Error;
+    // if (!updatedAppointment) throw Error;
 
-    const smsMessage = `Greetings from CarePulse. ${type === "schedule" ? `Your appointment is confirmed for ${formatDateTime(appointment.schedule!, timeZone).dateTime} with Dr. ${appointment.primaryPhysician}` : `We regret to inform that your appointment for ${formatDateTime(appointment.schedule!, timeZone).dateTime} is cancelled. Reason:  ${appointment.cancellationReason}`}.`;
+    // const smsMessage = `Greetings from CarePulse. ${type === "schedule" ? `Your appointment is confirmed for ${formatDateTime(appointment.schedule!, timeZone).dateTime} with Dr. ${appointment.primaryPhysician}` : `We regret to inform that your appointment for ${formatDateTime(appointment.schedule!, timeZone).dateTime} is cancelled. Reason:  ${appointment.cancellationReason}`}.`;
       
-    await sendSMSNotification(userId, smsMessage);
-    revalidatePath("/admin");
-    return parseStringify(updatedAppointment);
+     await sendSMSNotification(userId, smsMessage);
+     revalidatePath("/admin");
+     return parseStringify(updatedAppointment);*/
+
+
+    const res = await axios.patch(`/api/appointment/updateAppointment/${appointmentId}`,appointment)
+    return res.data.data;
+
   } catch (error) {
     console.error("An error occurred while scheduling an appointment:", error);
   }

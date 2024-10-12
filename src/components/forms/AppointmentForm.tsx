@@ -42,61 +42,55 @@ export const AppointmentForm = ({
     resolver: zodResolver(AppointmentFormValidation),
     defaultValues: {
       primaryPhysician: appointment ? appointment?.primaryPhysician : "",
-      schedule: appointment
-        ? new Date(appointment?.schedule!)
-        : new Date(Date.now()),
+      schedule: appointment ? new Date(appointment?.schedule!) : new Date(),
       reason: appointment ? appointment.reason : "",
       note: appointment?.note || "",
       cancellationReason: appointment?.cancellationReason || "",
     },
   });
 
-
-  const onSubmit = async (
-    values: z.infer<typeof AppointmentFormValidation>
-  ) => {
+  const onSubmit = async (values: z.infer<typeof AppointmentFormValidation>) => {
     setIsLoading(true);
 
-    const patient = await getPatient(userId);
-    // console.log("patient from appointmentForm ",patient)
-    let status;
-    switch (type) {
-      case "schedule":
-        status = "scheduled";
-        break;
-      case "cancel":
-        status = "cancelled";
-        break;
-      default:
-        status = "pending";
-    }
-
     try {
-      if (type === "create" && patient.$id) {
-        const appointment = {
+      const patient: any = await getPatient(userId);
+      // console.log("in Appointment onSubmit is working", patient[0]._id)
+
+      let status;
+      switch (type) {
+        case "schedule":
+          status = "scheduled";
+          break;
+        case "cancel":
+          status = "cancelled";
+          break;
+        default:
+          status = "pending";
+      }
+
+      if (type === "create" && patient[0]._id) {
+        const newAppointmentData = {
           userId,
-          patient: patient.$id,
+          patient: patient[0]._id,
           primaryPhysician: values.primaryPhysician,
           schedule: new Date(values.schedule),
-          reason: values.reason!,
+          reason: values.reason,
           status: status as Status,
           note: values.note,
         };
+
+        const newAppointment = await createAppointment(newAppointmentData);
         
-        const newAppointment = await createAppointment(appointment);
-        // console.log("this is new appointment",newAppointment)
         if (newAppointment) {
           form.reset();
           router.push(
-            `/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`
+            `/patients/${userId}/new-appointment/success?appointmentId=${newAppointment._id}`
           );
         }
-      } else {
-        console.log("the patent ID is ", patient.$id )
-        
+      } else if (appointment && patient[0]._id) {
         const appointmentToUpdate = {
           userId,
-          appointmentId:  appointment?.$id!,
+          appointmentId: appointment._id!,
           appointment: {
             primaryPhysician: values.primaryPhysician,
             schedule: new Date(values.schedule),
@@ -106,23 +100,18 @@ export const AppointmentForm = ({
           type,
         };
 
-        console.log("appointmentToUpdate is ",appointmentToUpdate)
-
         const updatedAppointment = await updateAppointment(appointmentToUpdate);
-        
         if (updatedAppointment) {
           setOpen && setOpen(false);
           form.reset();
         }
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error handling the appointment:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
-
-
-
 
   let buttonLabel;
   switch (type) {
@@ -133,7 +122,7 @@ export const AppointmentForm = ({
       buttonLabel = "Schedule Appointment";
       break;
     default:
-      buttonLabel = "Submit Apppointment";
+      buttonLabel = "Submit Appointment";
   }
 
   return (
@@ -142,9 +131,7 @@ export const AppointmentForm = ({
         {type === "create" && (
           <section className="mb-12 space-y-4">
             <h1 className="header">New Appointment</h1>
-            <p className="text-dark-700">
-              Request a new appointment in 10 seconds.
-            </p>
+            <p className="text-dark-700">Request a new appointment in 10 seconds.</p>
           </section>
         )}
 
@@ -182,15 +169,13 @@ export const AppointmentForm = ({
               dateFormat="MM/dd/yyyy  -  h:mm aa"
             />
 
-            <div
-              className={`flex flex-col gap-6  ${type === "create" && "xl:flex-row"}`}
-            >
+            <div className={`flex flex-col gap-6  ${type === "create" && "xl:flex-row"}`}>
               <CustomFormField
                 fieldType={FormFieldType.TEXTAREA}
                 control={form.control}
                 name="reason"
                 label="Appointment reason"
-                placeholder="Annual montly check-up"
+                placeholder="Annual check-up"
                 disabled={type === "schedule"}
               />
 

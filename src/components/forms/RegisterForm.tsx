@@ -34,34 +34,20 @@ const RegisterForm = ({ user }: { user: User }) => {
     resolver: zodResolver(PatientFormValidation),
     defaultValues: {
       ...PatientFormDefaultValues,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
+      name: "",
+      email:"",
+      phone: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof PatientFormValidation>) => {
     setIsLoading(true);
 
-    // Store file info in form data as
-    // const patient = await getPatient(userId);
-    let formData;
-    if (
-      values.identificationDocument &&
-      values.identificationDocument?.length > 0
-    ) {
-      const blobFile = new Blob([values.identificationDocument[0]], {
-        type: values.identificationDocument[0].type,
-      });
 
-      formData = new FormData();
-      formData.append("blobFile", blobFile);
-      formData.append("fileName", values.identificationDocument[0].name);
-    }
 
     try {
       const patient = {
-        userId: user.$id,
+        userId: user._id,
         name: values.name,
         email: values.email,
         phone: values.phone,
@@ -72,24 +58,22 @@ const RegisterForm = ({ user }: { user: User }) => {
         emergencyContactName: values.emergencyContactName,
         emergencyContactNumber: values.emergencyContactNumber,
         primaryPhysician: values.primaryPhysician,
-        insuranceProvider: values.insuranceProvider,
-        insurancePolicyNumber: values.insurancePolicyNumber,
+        
         allergies: values.allergies,
         currentMedication: values.currentMedication,
         familyMedicalHistory: values.familyMedicalHistory,
         pastMedicalHistory: values.pastMedicalHistory,
-        identificationType: values.identificationType,
-        identificationNumber: values.identificationNumber,
-        identificationDocument: values.identificationDocument
-          ? formData
-          : undefined,
-        privacyConsent: values.privacyConsent,
+        
       };
+  //  console.log("user from REgester",patient)
+
 
       const newPatient = await registerPatient(patient);
 
+      // console.log("new Patient",newPatient,patient)
+
       if (newPatient) {
-        router.push(`/patients/${user.$id}/new-appointment`);
+        router.push(`/patients/${user._id}/new-appointment`);
       }
     } catch (error) {
       console.log(error);
@@ -251,21 +235,21 @@ const RegisterForm = ({ user }: { user: User }) => {
 
           {/* INSURANCE & POLICY NUMBER */}
           <div className="flex flex-col gap-6 xl:flex-row">
-            <CustomFormField
+            {/* <CustomFormField
               fieldType={FormFieldType.INPUT}
               control={form.control}
               name="insuranceProvider"
               label="Insurance provider"
               placeholder="BlueCross BlueShield"
-            />
+            /> */}
 
-            <CustomFormField
+            {/* <CustomFormField
               fieldType={FormFieldType.INPUT}
               control={form.control}
               name="insurancePolicyNumber"
               label="Insurance policy number"
               placeholder="ABC123456789"
-            />
+            /> */}
           </div>
 
           {/* ALLERGY & CURRENT MEDICATIONS */}
@@ -307,45 +291,7 @@ const RegisterForm = ({ user }: { user: User }) => {
           </div>
         </section>
 
-        <section className="space-y-6">
-          <div className="mb-9 space-y-1">
-            <h2 className="sub-header">Identification and Verfication</h2>
-          </div>
-
-          <CustomFormField
-            fieldType={FormFieldType.SELECT}
-            control={form.control}
-            name="identificationType"
-            label="Identification Type"
-            placeholder="Select identification type"
-          >
-            {IdentificationTypes.map((type, i) => (
-              <SelectItem key={type + i} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </CustomFormField>
-
-          <CustomFormField
-            fieldType={FormFieldType.INPUT}
-            control={form.control}
-            name="identificationNumber"
-            label="Identification Number"
-            placeholder="123456789"
-          />
-
-          <CustomFormField
-            fieldType={FormFieldType.SKELETON}
-            control={form.control}
-            name="identificationDocument"
-            label="Scanned Copy of Identification Document"
-            renderSkeleton={(field) => (
-              <FormControl>
-                <FileUploader files={field.value} onChange={field.onChange} />
-              </FormControl>
-            )}
-          />
-        </section>
+        
 
         <section className="space-y-6">
           <div className="mb-9 space-y-1">
@@ -376,7 +322,7 @@ const RegisterForm = ({ user }: { user: User }) => {
           />
         </section>
 
-        <SubmitButton isLoading={isLoading}>Submit and Continue</SubmitButton>
+        <SubmitButton  isLoading={isLoading} >Submit and Continue</SubmitButton>
       </form>
     </Form>
   );

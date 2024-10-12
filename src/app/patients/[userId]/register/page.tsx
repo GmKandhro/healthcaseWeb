@@ -1,18 +1,37 @@
+"use client"
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
 import RegisterForm from "@/components/forms/RegisterForm";
 import { getPatient, getUser } from "@/lib/actions/patient.actions";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const Register = async ({ params: { userId } }: SearchParamProps) => {
-  const user = await getUser(userId);
+// eslint-disable-next-line @next/next/no-async-client-component
+const Register =  ({ params: { userId } }: SearchParamProps) => {
+  const [user, setUser] = useState<User>();
+  const router =  useRouter()
+  useEffect(() => {
+    // Function to call getUser and update the state
+    const fetchUser = async () => {
+      if (userId) {
+        const userData = await getUser(userId);
+        setUser(userData); // Set user data to state
+      }
+
+      const patient:any = await getPatient(userId);
+      // console.log("patient",patient)
+    
+      if (patient.length > 0) router.push(`/patients/${userId}/new-appointment`);
+    };
+
+    fetchUser();
+    
+   
+  }, [userId,router]);
+
+  // console.log("this is username id",user)
  
-  
-  const patient = await getPatient(userId);
-  console.log("patient",patient)
-
-  if (patient) redirect(`/patients/${userId}/new-appointment`);
 
   return (
     <div className="flex h-screen max-h-screen">
