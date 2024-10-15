@@ -1,26 +1,10 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { IPatient } from "./patientModel";
 
-// Define the interface for the Patient document
-interface IPatient extends Document {
-  name: string;
-  email: string;
-  phone: number;
-  birthDate: Date;
-  gender: string;
-  address: string;
-  occupation: string;
-  emergencyContactName: string;
-  emergencyContactNumber: number;
-  primaryPhysician: string;
-  allergies: string;
-  currentMedication: string;
-  familyMedicalHistory: string;
-  pastMedicalHistory: string;
-}
 
 // Define the interface for the Appointment document
 interface IAppointment extends Document {
-  patient: IPatient;  // Embedded patient object
+  patient:mongoose.Schema.Types.ObjectId;
   schedule: Date;
   reason: string;
   note: string;
@@ -30,60 +14,7 @@ interface IAppointment extends Document {
   cancellationReason: string;
 }
 
-// // Define the Patient schema (or fields you want to embed)
-// const patientSchema = new Schema<IPatient>({
-//   name: {
-//     type: String,
-//     required: true,
-//   },
-//   email: {
-//     type: String,
-//     required: true,
-//   },
-//   phone: {
-//     type: Number,
-//     required: true,
-//   },
-//   birthDate: {
-//     type: Date,
-//     required: true,
-//   },
-//   gender: {
-//     type: String,
-//     required: true,
-//   },
-//   address: {
-//     type: String,
-//     required: true,
-//   },
-//   occupation: {
-//     type: String,
-//   },
-//   emergencyContactName: {
-//     type: String,
-//     required: true,
-//   },
-//   emergencyContactNumber: {
-//     type: Number,
-//     required: true,
-//   },
-//   primaryPhysician: {
-//     type: String,
-//     required: true,
-//   },
-//   allergies: {
-//     type: String,
-//   },
-//   currentMedication: {
-//     type: String,
-//   },
-//   familyMedicalHistory: {
-//     type: String,
-//   },
-//   pastMedicalHistory: {
-//     type: String,
-//   }
-// });
+
 
 // Create the Appointment schema
 const appointmentSchema = new Schema<IAppointment>({

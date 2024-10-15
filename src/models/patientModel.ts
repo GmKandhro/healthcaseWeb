@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 // Define the interface for the Patient document
-interface IPatient extends Document {
+export interface IPatient extends Document {
   name: string;
   email: string;
   phone: number;
